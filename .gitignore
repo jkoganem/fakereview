@@ -1,1 +1,3 @@
 /scripts/data
+/raw data/combined_data.csv
+/scripts/combined_data_with_embeddings.csv
