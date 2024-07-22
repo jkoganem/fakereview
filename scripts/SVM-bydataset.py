@@ -29,7 +29,7 @@ df = pd.read_parquet("../raw data/combined_data_with_embeddings.parquet")
 for dataset in df['Original dataset'].unique():
     newdf = df[df['Original dataset'] == dataset]
 
-    train, test = train_test_split(newdf, test_size=0.2)
+    train, test = train_test_split(newdf, test_size=0.2, stratify = newdf['Label'])
 
     X_train = np.vstack(train.embedding.apply(lambda x: np.asarray(x).flatten()))
     X_test = np.vstack(test.embedding.apply(lambda x: np.asarray(x).flatten()))
