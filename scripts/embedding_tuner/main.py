@@ -31,6 +31,7 @@ class GTEtuner(nn.Module):
         self.gte = AutoModel.from_pretrained("thenlper/gte-large")
         self.linear_layer = nn.Linear(1024, 2)
 
+    # TODO: Make tokenization batchable?
     # Takes a string and tokenizes it
     # to a tensor of size (L, 512, 3) where third dimension
     # is indexed as 0: input_ids, 1: token_type_ids, 2: attention_mask
@@ -46,6 +47,7 @@ class GTEtuner(nn.Module):
         t = F.pad(t, (0,0,0, pad_length), 'constant', 0)
         return t.squeeze(0)
 
+    # TODO document better
     # Takes a tokenized string (as a tensor) and embeds it using GTE
     def embed(self, t):
         x = self.gte(input_ids = t[:,:, 0],
@@ -55,6 +57,7 @@ class GTEtuner(nn.Module):
         x = F.normalize(x, p = 2, dim = 1)
         return x
 
+    # TODO document better
     # Applies GTE embedding, then the linear layer
     def forward(self, t):
         x = self.embed(t)
@@ -92,6 +95,9 @@ class EmbeddingDataset(Dataset):
         return [tokens, label]
 
 data_loader = torch.utils.data.DataLoader(EmbeddingDataset(df), batch_size = 4, shuffle = True)
+
+# TODO verify that this setup gives exact same results as our previous
+# embedding code before fine tuning.
 
 ################################################################################
 ########## SETUP LOSS AND OPTIMIZER
