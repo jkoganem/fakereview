@@ -44,15 +44,16 @@ class GTEtuner(nn.Module):
         t = torch.stack([input_ids, token_type_ids, attention_mask], dim = 2)
         pad_length = 512-t.shape[1]
         t = F.pad(t, (0,0,0, pad_length), 'constant', 0)
-        return t.squeeze(0)
+        return t
 
     # Applies GTE to a tokenized string of shape (batchsize, 512, 3)
     def embed(self, t):
-        x = self.gte(input_ids = t[:,:, 0],
-                     token_type_ids = t[:,:,1],
-                     attention_mask = t[:,:,2])
-        x = x.last_hidden_state.sum(dim = 1)
-        x = F.normalize(x, p = 2, dim = 1)
+        tokens = int(t[:,:,2].sum(dim = 1)) # Number of coordinates to include
+        x = self.gte(input_ids = t[:,:tokens, 0],
+                     token_type_ids = t[:,:tokens,1],
+                     attention_mask = t[:,:tokens,2])
+        average_pooled = x.last_hidden_state.sum(dim = 1) / tokens
+        x = F.normalize(average_pooled, p = 2, dim = 1)
         return x
 
     # Applies GTE then a linear layer to a tokenized string
@@ -72,12 +73,12 @@ model = GTEtuner().to(device)
 tqdm.pandas()
 DATA_DIR = "../../raw data"
 df = pd.read_csv(f"{DATA_DIR}/combined_data.csv")
-df = df.head(100)
+df = df.head(10)
 
 # TODO: train test split
 
 df['Label'] = df['Label'].progress_apply(lambda x: Tensor([0,1]) if x == 'Machine' else Tensor([1,0]))
-df['Tokens'] = df['Text'].progress_apply(model.tokenize)
+df['Tokens'] = df['Text'].progress_apply(lambda x: model.tokenize(x).squeeze(0))
 
 class EmbeddingDataset(Dataset):
     def __init__(self, df):
@@ -107,8 +108,10 @@ optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
 ########## TRAINING LOOP
 ################################################################################
 
+embeddings = []
+
 for inputs, labels in tqdm(data_loader):
-	print(model(inputs)) # TODO 
+    embeddings += [model.embed(inputs)]
 
 ################################################################################
 ########## SAVE AND REPORT RESULTS
