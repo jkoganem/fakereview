@@ -48,13 +48,18 @@ class GTEtuner(nn.Module):
 
     # Applies GTE to a tokenized string of shape (batchsize, 512, 3)
     def embed(self, t):
-        tokens = int(t[:,:,2].sum(dim = 1)) # Number of coordinates to include
-        x = self.gte(input_ids = t[:,:tokens, 0],
-                     token_type_ids = t[:,:tokens,1],
-                     attention_mask = t[:,:tokens,2])
-        average_pooled = x.last_hidden_state.sum(dim = 1) / tokens
-        x = F.normalize(average_pooled, p = 2, dim = 1)
-        return x
+        tokens = t[:,:,2].sum(dim = 1) # Number of coordinates to include
+        outputs = []
+        # Annoyingly, due to different size inputs we need to iterate
+        for i, num_tokens in enumerate(tokens):
+            gte_inputs = t[i, :num_tokens, :].unsqueeze(0)
+            x = self.gte(input_ids = gte_inputs[:,:,0],
+                         token_type_ids = gte_inputs[:,:,1],
+                         attention_mask = gte_inputs[:,:,2])
+            average_pooled = x.last_hidden_state.sum(dim = 1) / num_tokens
+            x = F.normalize(average_pooled, p = 2, dim = 1)
+            outputs += [x]
+        return torch.stack(outputs, dim = 0)
 
     # Applies GTE then a linear layer to a tokenized string
     # of shape (batchsize, 512, 3)
