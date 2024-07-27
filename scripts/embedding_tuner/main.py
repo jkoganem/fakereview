@@ -20,9 +20,9 @@ from torch.utils.data import DataLoader, Dataset, Subset, random_split
 
 
 # The following class wraps an instance of the GTE model and attaches a linear
-# projection at the end of it. The actual GTE model is a bit hard to use,
-# so this class strips away many of the parts that extraneous to our purposes,
-# such as the attention masks.
+# projection at the end of it. The input to this model comes with shape
+# (batchsize, 512, 3) where each input has 512 tokens, 512 length token types
+# and 512 length attention mask.
 # Code based on usage example here: https://huggingface.co/thenlper/gte-large
 class GTEtuner(nn.Module):
     def __init__(self):
@@ -31,9 +31,8 @@ class GTEtuner(nn.Module):
         self.gte = AutoModel.from_pretrained("thenlper/gte-large")
         self.linear_layer = nn.Linear(1024, 2)
 
-    # TODO: Make tokenization batchable?
-    # Takes a string and tokenizes it
-    # to a tensor of size (L, 512, 3) where third dimension
+    # Takes a string and tokenizes it.
+    # Returns a tensor of size (batchsize, 512, 3) where third dimension
     # is indexed as 0: input_ids, 1: token_type_ids, 2: attention_mask
     def tokenize(self, x):
         if type(x) == str:
@@ -47,8 +46,7 @@ class GTEtuner(nn.Module):
         t = F.pad(t, (0,0,0, pad_length), 'constant', 0)
         return t.squeeze(0)
 
-    # TODO document better
-    # Takes a tokenized string (as a tensor) and embeds it using GTE
+    # Applies GTE to a tokenized string of shape (batchsize, 512, 3)
     def embed(self, t):
         x = self.gte(input_ids = t[:,:, 0],
                      token_type_ids = t[:,:,1],
@@ -57,8 +55,8 @@ class GTEtuner(nn.Module):
         x = F.normalize(x, p = 2, dim = 1)
         return x
 
-    # TODO document better
-    # Applies GTE embedding, then the linear layer
+    # Applies GTE then a linear layer to a tokenized string
+    # of shape (batchsize, 512, 3)
     def forward(self, t):
         x = self.embed(t)
         proj = self.linear_layer(x)
@@ -67,7 +65,6 @@ class GTEtuner(nn.Module):
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 model = GTEtuner().to(device)
 
-
 ################################################################################
 ########## DATALOADING
 ################################################################################
@@ -75,7 +72,7 @@ model = GTEtuner().to(device)
 tqdm.pandas()
 DATA_DIR = "../../raw data"
 df = pd.read_csv(f"{DATA_DIR}/combined_data.csv")
-# df = df.sample(100)
+df = df.head(100)
 
 # TODO: train test split
 
