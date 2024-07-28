@@ -6,6 +6,8 @@ import pandas as pd
 import numpy as np
 from tqdm import tqdm
 
+from sklearn.model_selection import train_test_split
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -80,10 +82,15 @@ DATA_DIR = "../../raw data"
 df = pd.read_csv(f"{DATA_DIR}/combined_data.csv")
 df = df.head(10)
 
-# TODO: train test split
-
+df['Stratify'] = df[['Label', 'Original dataset']].apply(lambda x: x['Label'] + " " + x['Original dataset'], axis = 1)
 df['Label'] = df['Label'].progress_apply(lambda x: Tensor([0,1]) if x == 'Machine' else Tensor([1,0]))
 df['Tokens'] = df['Text'].progress_apply(lambda x: model.tokenize(x).squeeze(0))
+
+train, val = train_test_split(df, test_size = 0.2, stratify=df['Stratify'])
+
+################################################################################
+########## DATASET CLASS
+################################################################################
 
 class EmbeddingDataset(Dataset):
     def __init__(self, df):
@@ -97,7 +104,8 @@ class EmbeddingDataset(Dataset):
         tokens, label = list(df[['Tokens', 'Label']].iloc[index])
         return [tokens, label]
 
-data_loader = torch.utils.data.DataLoader(EmbeddingDataset(df), batch_size = 4, shuffle = True)
+train_data_loader = torch.utils.data.DataLoader(EmbeddingDataset(train), batch_size = 4, shuffle = True)
+val_data_loader = torch.utils.data.DataLoader(EmbeddingDataset(val), batch_size = 4, shuffle = True)
 
 ################################################################################
 ########## SETUP LOSS AND OPTIMIZER
@@ -107,17 +115,17 @@ criterion = nn.BCEWithLogitsLoss(reduction='mean')
 
 # TODO choose an optimizer setup that focused on updating weights in
 # later layers of the model
-optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9) 
+optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9) 
 
 ################################################################################
 ########## TRAINING LOOP
 ################################################################################
 
-NUM_EPOCHS = 5
+NUM_EPOCHS = 4
 
 for epoch_num in range(NUM_EPOCHS):
     running_loss = 0
-    for inputs, labels in tqdm(data_loader):
+    for inputs, labels in tqdm(train_data_loader):
         inputs, labels = inputs.to(device), labels.to(device)
         optimizer.zero_grad()
         outputs = model(inputs)
@@ -125,7 +133,18 @@ for epoch_num in range(NUM_EPOCHS):
         loss.backward()
         optimizer.step()
         running_loss += loss.item()
-    print(f"Loss for epoch {epoch_num}: {running_loss}")
+    print(f"Training loss for epoch {epoch_num}: {running_loss}")
+    with torch.no_grad():
+        model.eval()
+        answers_correct = 0
+        for inputs,labels in tqdm(val_data_loader):
+            inputs, labels = inputs.to(device), labels.to(device)
+            outputs = torch.nn.Sigmoid()(model(inputs))
+            answers_correct += int((outputs * labels > 0.5).sum())
+    acc = answers_correct / len(val)
+    print(f"Validation accuracy for epoch {epoch_num}: {acc}")
+
+    model.train()
 
 ################################################################################
 ########## SAVE AND REPORT RESULTS
