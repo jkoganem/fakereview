@@ -86,7 +86,7 @@ df['Stratify'] = df[['Label', 'Original dataset']].apply(lambda x: x['Label'] + 
 df['Label'] = df['Label'].progress_apply(lambda x: Tensor(1) if x == 'Machine' else Tensor(0))
 df['Tokens'] = df['Text'].progress_apply(lambda x: model.tokenize(x).squeeze(0))
 
-train, val = train_test_split(df, test_size = 0.2, stratify=df['Stratify'])
+train, val = train_test_split(df, test_size = 0.2, stratify=df['Stratify'], random_state = 406)
 
 ################################################################################
 ########## DATASET CLASS
@@ -115,7 +115,7 @@ criterion = nn.BCEWithLogitsLoss(reduction='mean')
 
 # TODO choose an optimizer setup that focused on updating weights in
 # later layers of the model
-optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9) 
+optimizer = optim.Adam(model.parameters(), lr=0.01) 
 
 ################################################################################
 ########## TRAINING LOOP
