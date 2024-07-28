@@ -31,7 +31,7 @@ class GTEtuner(nn.Module):
         super(GTEtuner, self).__init__()
         self.tokenizer = AutoTokenizer.from_pretrained("thenlper/gte-large")
         self.gte = AutoModel.from_pretrained("thenlper/gte-large")
-        self.linear_layer = nn.Linear(1024, 2)
+        self.linear_layer = nn.Linear(1024, 1)
 
     # Takes a string and tokenizes it.
     # Returns a tensor of size (batchsize, 512, 3) where third dimension
@@ -83,7 +83,7 @@ df = pd.read_csv(f"{DATA_DIR}/combined_data.csv")
 df = df.head(10)
 
 df['Stratify'] = df[['Label', 'Original dataset']].apply(lambda x: x['Label'] + " " + x['Original dataset'], axis = 1)
-df['Label'] = df['Label'].progress_apply(lambda x: Tensor([0,1]) if x == 'Machine' else Tensor([1,0]))
+df['Label'] = df['Label'].progress_apply(lambda x: Tensor(1) if x == 'Machine' else Tensor(0))
 df['Tokens'] = df['Text'].progress_apply(lambda x: model.tokenize(x).squeeze(0))
 
 train, val = train_test_split(df, test_size = 0.2, stratify=df['Stratify'])
@@ -140,7 +140,10 @@ for epoch_num in range(NUM_EPOCHS):
         for inputs,labels in tqdm(val_data_loader):
             inputs, labels = inputs.to(device), labels.to(device)
             outputs = torch.nn.Sigmoid()(model(inputs))
-            answers_correct += int((outputs * labels > 0.5).sum())
+            # Avoiding rounding errors in floats
+            guesses = torch.round(outputs)
+            labels = torch.round(labels)
+            answers_correct += int((guesses == labels).sum())
     acc = answers_correct / len(val)
     print(f"Validation accuracy for epoch {epoch_num}: {acc}")
 
