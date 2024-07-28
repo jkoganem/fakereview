@@ -17,6 +17,13 @@ from transformers import AutoTokenizer, AutoModel
 from torch.utils.data import DataLoader, Dataset, Subset, random_split
 
 ################################################################################
+########## HYPERPARAMETERS
+################################################################################
+
+BATCH_SIZE = 4 # Note: got out of GPU memory error with batchsize 8 on cluster
+NUM_EPOCHS = 4
+
+################################################################################
 ########## MODEL LOADING
 ################################################################################
 
@@ -78,12 +85,12 @@ model = GTEtuner().to(device)
 ################################################################################
 
 tqdm.pandas()
-DATA_DIR = "../../raw data"
+DATA_DIR = "."
 df = pd.read_csv(f"{DATA_DIR}/combined_data.csv")
-df = df.head(10)
+# df = df.sample(n = 500, random_state = 406) # For quicker tests
 
 df['Stratify'] = df[['Label', 'Original dataset']].apply(lambda x: x['Label'] + " " + x['Original dataset'], axis = 1)
-df['Label'] = df['Label'].progress_apply(lambda x: Tensor(1) if x == 'Machine' else Tensor(0))
+df['Label'] = df['Label'].progress_apply(lambda x: Tensor([1]) if x == 'Machine' else Tensor([0]))
 df['Tokens'] = df['Text'].progress_apply(lambda x: model.tokenize(x).squeeze(0))
 
 train, val = train_test_split(df, test_size = 0.2, stratify=df['Stratify'], random_state = 406)
@@ -104,8 +111,8 @@ class EmbeddingDataset(Dataset):
         tokens, label = list(df[['Tokens', 'Label']].iloc[index])
         return [tokens, label]
 
-train_data_loader = torch.utils.data.DataLoader(EmbeddingDataset(train), batch_size = 4, shuffle = True)
-val_data_loader = torch.utils.data.DataLoader(EmbeddingDataset(val), batch_size = 4, shuffle = True)
+train_data_loader = torch.utils.data.DataLoader(EmbeddingDataset(train), batch_size = BATCH_SIZE, shuffle = True)
+val_data_loader = torch.utils.data.DataLoader(EmbeddingDataset(val), batch_size = BATCH_SIZE, shuffle = True)
 
 ################################################################################
 ########## SETUP LOSS AND OPTIMIZER
@@ -115,13 +122,11 @@ criterion = nn.BCEWithLogitsLoss(reduction='mean')
 
 # TODO choose an optimizer setup that focused on updating weights in
 # later layers of the model
-optimizer = optim.Adam(model.parameters(), lr=0.01) 
+optimizer = optim.Adam(model.parameters(), lr=0.1) 
 
 ################################################################################
 ########## TRAINING LOOP
 ################################################################################
-
-NUM_EPOCHS = 4
 
 for epoch_num in range(NUM_EPOCHS):
     running_loss = 0
@@ -133,7 +138,7 @@ for epoch_num in range(NUM_EPOCHS):
         loss.backward()
         optimizer.step()
         running_loss += loss.item()
-    print(f"Training loss for epoch {epoch_num}: {running_loss}")
+    print(f"Training loss for epoch {epoch_num}: {running_loss / len(train_data_loader)}")
     with torch.no_grad():
         model.eval()
         answers_correct = 0
@@ -152,3 +157,5 @@ for epoch_num in range(NUM_EPOCHS):
 ################################################################################
 ########## SAVE AND REPORT RESULTS
 ################################################################################
+
+torch.save(model.state_dict(), 'embedding_tuner.pt')
