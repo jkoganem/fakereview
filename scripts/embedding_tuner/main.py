@@ -59,7 +59,7 @@ class GTEtuner(nn.Module):
             average_pooled = x.last_hidden_state.sum(dim = 1) / num_tokens
             x = F.normalize(average_pooled, p = 2, dim = 1)
             outputs += [x]
-        return torch.stack(outputs, dim = 0)
+        return torch.cat(outputs, dim = 0)
 
     # Applies GTE then a linear layer to a tokenized string
     # of shape (batchsize, 512, 3)
@@ -99,24 +99,33 @@ class EmbeddingDataset(Dataset):
 
 data_loader = torch.utils.data.DataLoader(EmbeddingDataset(df), batch_size = 4, shuffle = True)
 
-# TODO verify that this setup gives exact same results as our previous
-# embedding code before fine tuning.
-
 ################################################################################
 ########## SETUP LOSS AND OPTIMIZER
 ################################################################################
 
-criterion = nn.BCEWithLogitsLoss(reduction='sum')
-optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
+criterion = nn.BCEWithLogitsLoss(reduction='mean')
+
+# TODO choose an optimizer setup that focused on updating weights in
+# later layers of the model
+optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9) 
 
 ################################################################################
 ########## TRAINING LOOP
 ################################################################################
 
-embeddings = []
+NUM_EPOCHS = 5
 
-for inputs, labels in tqdm(data_loader):
-    embeddings += [model.embed(inputs)]
+for epoch_num in range(NUM_EPOCHS):
+    running_loss = 0
+    for inputs, labels in tqdm(data_loader):
+        inputs, labels = inputs.to(device), labels.to(device)
+        optimizer.zero_grad()
+        outputs = model(inputs)
+        loss = criterion(outputs, labels)
+        loss.backward()
+        optimizer.step()
+        running_loss += loss.item()
+    print(f"Loss for epoch {epoch_num}: {running_loss}")
 
 ################################################################################
 ########## SAVE AND REPORT RESULTS
