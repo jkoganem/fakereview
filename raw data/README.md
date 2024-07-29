@@ -1,4 +1,4 @@
-Dataset sources and notes. Raw CSVs are stored locally since several are too large for GitHub file size limit.
+Dataset sources and notes. Raw CSVs are stored locally since several are too large for GitHub file size limit. For future work, the following repository has a vast list of further relevant datasets: https://github.com/ICTMCG/Awesome-Machine-Generated-Text
 
 | File | URL | Text Description | Model(s) | Number Fake | Number Real | Citation |
 |---|---|---|---|---|---|---|
