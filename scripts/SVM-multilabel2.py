@@ -19,6 +19,8 @@ from nltk.stem import WordNetLemmatizer
 nltk.download('wordnet')
 import os.path
 from tqdm.autonotebook import tqdm, trange
+from sklearn.svm import SVC
+from datetime import datetime
 
 ### Loading data with embeddings ###
 print('Loading data with embeddings...')
@@ -27,8 +29,14 @@ df = pd.read_parquet("../raw data/combined_data_with_embeddings.parquet")
 ### Remove entries from 'essays' dataset ###
 df = df[df['Original dataset'] != 'essays']
 
+### Relabeling ###
+def newlabel(row):
+    return row['Label'] + row['Original dataset']
+    
+df['Label'] = df.apply(newlabel, axis=1)
+
 ### Making Train Test split ###
-train, test = train_test_split(df, test_size=0.2)
+train, test = train_test_split(df, test_size=0.2, stratify=df['Label'])
 
 X_train = np.vstack(train.embedding.apply(lambda x: np.asarray(x).flatten()))
 X_test = np.vstack(test.embedding.apply(lambda x: np.asarray(x).flatten()))
