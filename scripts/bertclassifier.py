@@ -116,7 +116,7 @@ for epoch in tqdm(range(num_epochs)):
         train_last_loss = train_batch_loss / batch_size
         
         if SAVE_CHECKPOINTS == True:
-            torch.save(bert_model.state_dict(), f"{CHECKPOINT_DIR}{MODEL_NAME}/checkpoint_{num_epochs+1}.pt")
+            torch.save(bert_model.state_dict(), f"{CHECKPOINT_DIR}{MODEL_NAME}/checkpoint_{epoch+1}.pt")
 
         print('Training batch {} last loss: {}'.format(i + 1, train_last_loss))
     # Logging epoch-wise training loss
