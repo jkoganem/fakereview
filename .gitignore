@@ -4,3 +4,7 @@
 /raw data/combined_data_with_embeddings.parquet
 /scripts/.DS_Store
 .DS_Store
+code/embeddings-SBERT-all-MiniLM-L6-v2.parquet
+code/best_clr.db
+raw data/embeddings-SBERT-all-MiniLM-L6-v2.parquet
+raw data/embeddings-SBERT.parquet
