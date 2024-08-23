@@ -77,6 +77,21 @@ class GTEtuner(nn.Module):
         proj = self.linear_layer(x)
         return proj
 
+    # Turns off gradient for GTE
+    def freeze_gte(self):
+        for p in self.gte.parameters():
+            p.requires_grad_(False)
+
+    # Turns on gradient for all parameters
+    def unfreeze(self):
+        for p in self.parameters():
+            p.requires_grad_(True)
+
+    # Turns off the gradient for first n layers of GTE
+    def freeze_first_n_layers(self, n):
+        # TODO
+        return False
+
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 model = GTEtuner().to(device)
 
@@ -86,8 +101,10 @@ model = GTEtuner().to(device)
 
 tqdm.pandas()
 DATA_DIR = "."
+DATA_DIR = "../../raw data/"
 df = pd.read_csv(f"{DATA_DIR}/combined_data.csv")
 # df = df.sample(n = 500, random_state = 406) # For quicker tests
+df = df.head(10)
 
 df['Stratify'] = df[['Label', 'Original dataset']].apply(lambda x: x['Label'] + " " + x['Original dataset'], axis = 1)
 df['Label'] = df['Label'].progress_apply(lambda x: Tensor([1]) if x == 'Machine' else Tensor([0]))
