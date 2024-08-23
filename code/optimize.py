@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import logging
 import sys
-import optuna
+import code.optuna as optuna
 import xgboost as xgb
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, HistGradientBoostingClassifier
 from sklearn.model_selection import train_test_split, StratifiedKFold, cross_validate
@@ -81,4 +81,4 @@ study = optuna.create_study(study_name="best_clr",
                             direction='maximize',
                             load_if_exists=True,storage="sqlite:///best_clr.db")
 
-study.optimize(objective, n_trials=10)
+study.optimize(objective, n_trials=5)
