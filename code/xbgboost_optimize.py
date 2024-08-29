@@ -16,7 +16,7 @@ print("Done")
 
 print("Reading data")
 data = pd.read_parquet("../raw data/embeddings-SBERT.parquet")
-data = pd.concat([data, pd.DataFrame(np.array(data['embedding_full'].to_list()))], axis = 1)
+data = pd.concat([data, pd.DataFrame(np.array(data['embedding_light'].to_list()))], axis = 1)
 data['Label'] = data['Label'].apply(lambda x: 0 if x == 'Human' else 1)
 data['Label + Dataset'] = data.apply(lambda x:str(x['Label']) + "_" + x['Original dataset'], axis = 1)
 print("Done")
@@ -24,7 +24,7 @@ print("Done")
 le = LabelEncoder()
 
 def objective(trial):
-    X = data.loc[:, 0:767]
+    X = data.loc[:, 0:383]
     y = le.fit_transform(data['Label'])
     
     cv_skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
@@ -43,7 +43,7 @@ def objective(trial):
             "booster": trial.suggest_categorical('xgb_booster', ['gbtree', 'gblinear', 'dart'])
     }
         
-    pruning_callback = optuna.integration.XGBoostPruningCallback(trial, "validation-auc")
+
     classifier_obj = xgb.XGBClassifier(**param)
     
     cv_results = cross_validate(
@@ -61,7 +61,8 @@ def objective(trial):
 
 study = optuna.create_study(study_name="xgb",
                             direction='maximize',
-                            load_if_exists=True,storage="sqlite:///xgb.db")
+                            load_if_exists=True,storage="sqlite:///xgb.db",
+                            pruner=optuna.pruners.MedianPruner())
 print("Starting trials")
-study.optimize(objective, n_trials=50, show_progress_bar = True)
+study.optimize(objective, n_trials=15, show_progress_bar = True)
 print("Done")

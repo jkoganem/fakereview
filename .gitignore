@@ -8,3 +8,6 @@ code/embeddings-SBERT-all-MiniLM-L6-v2.parquet
 code/best_clr.db
 raw data/embeddings-SBERT-all-MiniLM-L6-v2.parquet
 raw data/embeddings-SBERT.parquet
+/jupyter scripts
+/test scripts
+/LanceDB
