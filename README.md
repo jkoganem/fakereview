@@ -13,18 +13,8 @@ With the explosion of LLMs and NLP methods, AI-generated text has become ubiquit
 
 ## Structure of repository
 
-- `all scripts` folder contains scripts for all the architectures and preprocessing steps that we have been considering.  
-- `data` folder contains the training metadata. .py scripts in the scripts folders can be ran locally after populating the `data` folder with the official training audio data. 
-- `sample scripts` folder contains sample scripts showcasing our work. Included are 
-    - [EDAbaseline.ipynb](/sample%20scripts/EDAbaseline.ipynb) for exploratory data analysis and a simple training pipeline.
-    - [baseline.ipynb](/sample%20scripts/baseline.ipynb) and [baseline.py](/sample%20scripts/baseline.py) for a two-layer baseline model with minimal preprocessing. 
-    - [6layerNN.py](/sample%20scripts/) for a six-layer CNN model with improved preprocessing.
-    - [convnext.py](/sample%20scripts/convnext.py) and [resnet.py](/sample%20scripts/resnet.py) for transfer learning with ResNet and ConvNeXT. 
-
-#### Remark
-The scripts are written to be ran on a remote cluster with considerable computing power. As written, the training data is loaded into memory to speed up runtime performance, which requires significant RAM usage. Simple modifications can be made for the scripts to be utilized locally. 
-
-
+- `raw data` contains a readme citing our data sources, and our exploratory data analysis notebooks. It does not contain the raw data itself, which was too large to add to the repository. Instead, the `processing.ipynb` notebook can be used to reconstruct our dataset from the source datasets that we link.
+- `code` contains our Python scripts for XGBoost and fine-tuning, which are intended to run on a powerful computing cluster.
 
 ## Our Dataset: 
 
