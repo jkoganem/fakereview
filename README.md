@@ -30,15 +30,12 @@ We compiled 40000 human-generated and 40000 AI-generated text snippets sourced f
 ). 
 
  
-## Evaluation metric
+## Analysis
 
 
 
 ## Acknowledgements 
-
-We would like to thank the Erdös institute for providing the authors the opportunity to work on this project as part of the Erdös institute Deep Learning Bootcamp. 
-
-We would also like to thank Nuno Chagas and the Department of Mathematical Sciences at Carnegie Mellon University for providing computing support for the project. 
+We would like to thank the Erdös institute for providing the authors the opportunity to work on this project as part of the Erdös institute Deep Learning Bootcamp. We would also like to thank Nuno Chagas and the Department of Mathematical Sciences at Carnegie Mellon University for providing computing support for the project. 
 
 
 
