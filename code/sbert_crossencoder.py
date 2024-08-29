@@ -16,6 +16,7 @@ from tqdm import tqdm
 from pathlib import Path
 from datetime import datetime
 import logging
+import glob
 
 # Torch imports
 import torch
@@ -129,10 +130,14 @@ for test_sample in test_dataset:
 ################################################################################
 
 # The CrossEncoder class is a wrapper around Huggingface AutoModelForSequenceClassification
-
-model = CrossEncoder("sentence-transformers/all-MiniLM-L6-v2", 
+if len(os.listdir(CHECKPOINT_DIR)) == 0:
+    model = CrossEncoder("sentence-transformers/all-MiniLM-L6-v2", 
                      num_labels=1,
                      device = device)
+else: 
+    model = CrossEncoder(CHECKPOINT_DIR + '/SBERT_CrossEncoder2024-08-29_05-23-36')
+    #model = CrossEncoder(max(glob.glob(os.path.join(CHECKPOINT_DIR, '*/')), key=os.path.getmtime)[:-1])
+
 
 ################################################################################
 # TRAINING SETUP
