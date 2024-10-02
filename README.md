@@ -37,6 +37,18 @@ We extensively optimized the hyperparameters for XGBoost using Optuna, since XGB
 
 To move beyond the out-of-the-box SBERT, we attached a linear classification head and performed fine-tuning (`sbert_crossencoder_mpnet_v2.py`). With the SBERT model frozen, the linear classifier only achieved 69% accuracy, but when fine-tuning the entire model we achieved 88% validation accuracy after 20 epochs. Even better, the fine-tuned model achieved 92\% accuracy on our final holdout set. Our work confirms that fine-tuning existing language models is a valuable approach for detecting AI-generated text content. 
 
+## Generalization experiments
+
+| Training contexts | Grover accuracy | Wiki accuracy | Reviews accuracy |
+|-------------------|-----------------|---------------|------------------|
+| G | 0.6675	| 0.5245 |	0.5215 |
+| W | 0.50475 | 0.977 | 0.5775 |
+| R | 0.50125 |	0.54225 |	0.92525 |
+| GW | 0.587 |	0.9645 |	0.5345 |
+| GR | 0.6065 |	0.60725 |	0.85875 |
+| WR | 0.5005 |	0.96625 |	0.8725 |
+| GWR | 0.5705 |0.94325 |	0.78125 |
+
 
 ## Acknowledgements 
 We would like to thank the Erdös institute for providing the authors the opportunity to work on this project as part of the Erdös institute Deep Learning Bootcamp. We would also like to thank Nuno Chagas and the Department of Mathematical Sciences at Carnegie Mellon University for providing computing support for the project. 
