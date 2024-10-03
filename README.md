@@ -44,7 +44,7 @@ A natural followup question arises from these results—is our model learning en
 
 The table below has one row for each of seven experiments, corresponding to the nonempty subsets of our three contexts: Grover, Wikipedia intros, and reviews. For each experiment, we fine-tuned an `all-mpnet-base-v2` classifier for 10 epochs on the corresponding contexts, and computed final test accuracies on a held out set consisting of 20% of the data. 
 
-| Training contexts | Grover accuracy | Wiki accuracy | Reviews accuracy |
+| Training contexts <br> (10 epochs) | Grover accuracy | Wiki accuracy | Reviews accuracy |
 |-------------------|-----------------|---------------|------------------|
 | G | 0.6675	| 0.5245 |	0.5215 |
 | W | 0.50475 | 0.977 | 0.5775 |
