@@ -38,6 +38,11 @@ To get the most out of our baseline, we extensively optimized the hyperparameter
 To move beyond the out-of-the-box SBERT, we attached a linear classification head and performed fine-tuning (`code/sbert_crossencoder_mpnet_v2.py`). With the SBERT model frozen, the linear classifier only achieved 69\% accuracy, but when fine-tuning the entire model we achieved 88\% validation accuracy after 20 epochs. Even better, the fine-tuned model achieved 92\% accuracy on our final holdout set. Our work confirms that fine-tuning existing language models is a valuable approach for detecting AI-generated text content. 
 
 ## Generalization experiments
+A natural followup question arises from these results---is our model learning enough that it could be applied in truly novel contexts, or is it narrowly learning our specific dataset? To assess the extent to which our approach could generalize to new contexts, we ran a series of experiments with 10 epochs of training in restricted contexts, but validation accuracies computed in every context. Importantly, we found that 
+ * training in one context *could* lead to higher performance in different ones, and
+ * training in one context does not appear to harm performance in unseen contexts.
+
+The table below has one row for each of seven experiments, corresponding to the nonempty subsets of our three contexts: Grover, Wikipedia intros, and reviews. For each experiment, we fine-tuned an `all-mpnet-base-v2` classifier for 10 epochs on the corresponding contexts, and computed final test accuracies on a held out set consisting of 20% of the data. 
 
 | Training contexts | Grover accuracy | Wiki accuracy | Reviews accuracy |
 |-------------------|-----------------|---------------|------------------|
@@ -49,6 +54,7 @@ To move beyond the out-of-the-box SBERT, we attached a linear classification hea
 | WR | 0.5005 |	0.96625 |	0.8725 |
 | GWR | 0.5705 |0.94325 |	0.78125 |
 
+The results show stark differences in performance on each dataset. Grover is clearly the "hardest" to learn, and sees almost no improvement from training on different contexts. This perhaps indicates that this is the most robust dataset out of the three. On the other hand, the Wiki and review data see roughly similar benefits from training on different contexts; it is perhaps not surprising to see this correlation given that these datasets were generated with GPT-3 and GPT-2 respectively. 
 
 ## Acknowledgements 
 We would like to thank the Erdös institute for providing the authors the opportunity to work on this project as part of the Erdös institute Deep Learning Bootcamp. We would also like to thank Nuno Chagas and the Department of Mathematical Sciences at Carnegie Mellon University for providing computing support for the project. 
