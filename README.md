@@ -1,4 +1,4 @@
-# Detecting AI reviews using deep learning architectures
+# Detecting AI-generated text with deep learning
 
 ## Authors
 [Amzi Jeffs](https://github.com/AmziJeffs)    
